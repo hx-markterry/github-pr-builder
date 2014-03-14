@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use WWW::Mechanize;
 use JSON;
-use Data::Dumper;
 use File::Temp;
 use File::Slurp;
 use HTTP::Date;
@@ -61,14 +60,13 @@ sub __updateLastRun{
 }
 
 sub __mech{
-  my $self = shift;
   my $mech = WWW::Mechanize->new();
-  $mech->default_header('Authorization' => "token " . $self->__config()->{'authToken'});
+  $mech->default_header('Authorization' => "token " . shift->__config()->{'authToken'});
   $mech;
 }
 
 sub __processQueue{
-  my($self, $queue) = @_;
+  my $queue = pop;
   print "PRs Found: " . scalar @$queue . "\n";
   foreach my $qItem (@{$queue}){
     $self->__processQueueItem($qItem);
@@ -109,6 +107,7 @@ sub __runCommand{
     while(<CLONE>){
       print $_;
     }
+    close(CLONE);
   }
 }
 
