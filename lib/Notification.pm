@@ -32,7 +32,7 @@ sub poll{
       }
     }
     $self->__updateLastRun();
-    $self->__processQueue([pop(@queue)]);
+    $self->__processQueue(\@queue);
   }
 }
 
