@@ -6,6 +6,6 @@ use local::lib "$Bin/../local";
 use lib "lib";
 use Notification;
 
-my $notification = Notification->new();
+my $notification = Notification->new("root/config.json");
 $notification->poll();
 exit(0);

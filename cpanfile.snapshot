@@ -35,6 +35,17 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       HTTP::Date 6
       perl 5.006002
+  File-Slurp-9999.19
+    pathname: U/UR/URI/File-Slurp-9999.19.tar.gz
+    provides:
+      File::Slurp 9999.19
+      FileSlurp_12 9999.13
+    requirements:
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      Fcntl 0
+      POSIX 0
   HTML-Form-6.03
     pathname: G/GA/GAAS/HTML-Form-6.03.tar.gz
     provides:
@@ -211,6 +222,15 @@ DISTRIBUTIONS
       Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
+  JSON-2.90
+    pathname: M/MA/MAKAMAKA/JSON-2.90.tar.gz
+    provides:
+      JSON 2.90
+      JSON::Backend::PP 2.90
+      JSON::Boolean 2.90
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   LWP-MediaTypes-6.02
     pathname: G/GA/GAAS/LWP-MediaTypes-6.02.tar.gz
     provides:
