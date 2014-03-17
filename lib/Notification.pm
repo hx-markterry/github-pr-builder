@@ -18,18 +18,18 @@ sub new{
 sub poll{
   my $self = shift;
   my $mech = $self->__mech();
-  $mech->get($self->__notificationUrl(), 'If-Modified-Since' => $self->__lastRun());
+  print "Last run: " . $self->__lastRun() . "\n";
+  $mech->get($self->__prUrl(), 'If-Modified-Since' => $self->__lastRun());
   if($mech->status() == 200){ #some notifications
     my $json = JSON->new();
-    my $notices = $json->decode($mech->content());
+    my $prs = $json->decode($mech->content());
     my @queue;
-    foreach my $notice (@{$notices}){
-      if($notice->{'reason'} eq "author"){  #new pull request made
+    foreach my $pr (@{$prs}){
         push(@queue, {
-          "title" => $notice->{'subject'}->{'title'},
-          "url" => $notice->{'subject'}->{'url'}
+          "title" => $pr->{'title'},
+          "url" => $pr->{'url'},
+          "branch" => $pr->{'base'}->{'ref'}
         });
-      }
     }
     $self->__updateLastRun();
     $self->__processQueue(\@queue);
@@ -66,7 +66,7 @@ sub __mech{
 }
 
 sub __processQueue{
-  my $queue = pop;
+  my($self, $queue) = @_;
   print "PRs Found: " . scalar @$queue . "\n";
   foreach my $qItem (@{$queue}){
     $self->__processQueueItem($qItem);
@@ -78,17 +78,13 @@ sub __processQueueItem{
   print "=" x 20 . "\n";
   print "PR Title: " . $item->{'title'} . "\n";
   print "PR URL: " . $item->{'url'} . "\n";
-  my $mech = $self->__mech();
-  $mech->get($item->{'url'});
-  my $json = JSON->new();
-  my $info = $json->decode($mech->content());
-  print "PR Branch: " . $info->{'head'}->{'ref'} . "\n";
+  print "PR Branch: " . $item->{'branch'} . "\n\n";
   my $dir = File::Temp->newdir(UNLINK => 0, CLEANUP => 0);
   print "Using directory: " . $dir->dirname . "\n";
   chdir($dir->dirname);
   $self->__runCommand("git clone " . $self->__cloneUrl());
   chdir($self->__config()->{'repoName'});
-  $self->__runCommand("git checkout " . $info->{'head'}->{'ref'});
+  $self->__runCommand("git checkout " . $item->{'branch'});
   $self->__runCommand($self->__config()->{'buildCommand'});
 }
 
@@ -97,9 +93,9 @@ sub __cloneUrl{
   'git@github.com:' . $config->{'ownerName'} . '/' . $config->{'repoName'} . '.git';
 }
 
-sub __notificationUrl{
+sub __prUrl{
   my $config = shift->__config();
-  "https://api.github.com/repos/" . $config->{'ownerName'} . "/" . $config->{'repoName'} . "/notifications";
+  "https://api.github.com/repos/" . $config->{'ownerName'} . "/" . $config->{'repoName'} . "/pulls?state=open&sort=created&direction=asc";
 }
 
 sub __runCommand{
