@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use WWW::Mechanize;
 use JSON;
+use File::Temp;
 use File::Slurp;
 use HTTP::Date;
 
