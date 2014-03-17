@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use WWW::Mechanize;
 use JSON;
-use File::Temp;
 use File::Slurp;
 use HTTP::Date;
 
@@ -79,7 +78,7 @@ sub __processQueueItem{
   print "PR Title: " . $item->{'title'} . "\n";
   print "PR URL: " . $item->{'url'} . "\n";
   print "PR Branch: " . $item->{'branch'} . "\n\n";
-  my $dir = File::Temp->newdir(UNLINK => 0, CLEANUP => 0);
+  my $dir = File::Temp->newdir(UNLINK => 0, CLEANUP => 0, DIR => $self->__config()->{'buildDir'});
   print "Using directory: " . $dir->dirname . "\n";
   chdir($dir->dirname);
   $self->__runCommand("git clone " . $self->__cloneUrl());

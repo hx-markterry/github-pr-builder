@@ -2,5 +2,6 @@
   "authToken": "notarealauthtoken",
   "ownerName": "hx-markterry",
   "repoName": "cordova-plugin-datepicker",
-  "buildCommand": "make install"
+  "buildCommand": "make install",
+  "buildDir": "/somedir"
 }
