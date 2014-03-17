@@ -25,11 +25,11 @@ sub poll{
     my $prs = $json->decode($mech->content());
     my @queue;
     foreach my $pr (@{$prs}){
-        push(@queue, {
-          "title" => $pr->{'title'},
-          "url" => $pr->{'url'},
-          "branch" => $pr->{'base'}->{'ref'}
-        });
+      push(@queue, {
+        "title" => $pr->{'title'},
+        "url" => $pr->{'url'},
+        "branch" => $pr->{'head'}->{'ref'}
+      });
     }
     $self->__updateLastRun();
     $self->__processQueue(\@queue);
