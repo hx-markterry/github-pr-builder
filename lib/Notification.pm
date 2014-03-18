@@ -25,9 +25,7 @@ sub poll{
     my $prs = decode_json($mech->content());
     my @queue;
     foreach my $pr (@{$prs}){
-      use Data::Dumper;
-      print Dumper($pr);
-      my $updatedTime = str2time($pr->{'updated_at'});
+      my $updatedTime = str2time($pr->{'created_at'});
       if($updatedTime > $runTime){  #PR has been updated since last run
         push(@queue, {
           "title" => $pr->{'title'},

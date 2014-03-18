@@ -1,7 +1,7 @@
 github-pr-builder
 =================
 
-Build github projects when pull requests are made.
+Check for open pull requests and build them. Comments on the pull request reporting build success or failure.
 
 Requirements
 ------------
