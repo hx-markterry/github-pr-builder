@@ -18,18 +18,22 @@ sub new{
 sub poll{
   my $self = shift;
   my $mech = $self->__mech();
-  print "Last run: " . $self->__lastRun() . "\n";
-  $mech->get($self->__prUrl(), 'If-Modified-Since' => $self->__lastRun());
+  my $runTime = $self->__lastRun();
+  print "Last run: " . time2str($runTime) . "\n";
+  $mech->get($self->__prUrl(), 'If-Modified-Since' => time2str($runTime));
   if($mech->status() == 200){ #some notifications
     my $json = JSON->new();
     my $prs = $json->decode($mech->content());
     my @queue;
     foreach my $pr (@{$prs}){
-      push(@queue, {
-        "title" => $pr->{'title'},
-        "url" => $pr->{'url'},
-        "branch" => $pr->{'head'}->{'ref'}
-      });
+      my $updatedTime = str2time($pr->{'updated_at'});
+      if($updatedTime > $runTime){  #PR has been updated since last run
+        push(@queue, {
+          "title" => $pr->{'title'},
+          "url" => $pr->{'url'},
+          "branch" => $pr->{'head'}->{'ref'}
+        });
+      }
     }
     $self->__updateLastRun();
     $self->__processQueue(\@queue);
@@ -52,7 +56,7 @@ sub __lastRun{
   if(-e ".lastrun"){
     $lastRun = read_file(".lastrun");
   }
-  time2str($lastRun);
+  $lastRun;
 }
 
 sub __updateLastRun{

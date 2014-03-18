@@ -25,7 +25,7 @@ Usage
 1. Make sure the build directory exists.
 1. Run script/builder.pl
 
-The time of the last check will be written to `.lastrun`, the next check will use this time when checking for new pull requests,
+The time of the last check will be written to `.lastrun`, the next check will use this time when checking for open pull requests that have been updated,
 ensuring that a pull request is not processed twice.
 
 If no last run file is present the last hour will be used as a default.
