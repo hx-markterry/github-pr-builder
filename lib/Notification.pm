@@ -22,16 +22,18 @@ sub poll{
   print "Last run: " . time2str($runTime) . "\n";
   $mech->get($self->__prUrl(), 'If-Modified-Since' => time2str($runTime));
   if($mech->status() == 200){ #some notifications
-    my $json = JSON->new();
-    my $prs = $json->decode($mech->content());
+    my $prs = decode_json($mech->content());
     my @queue;
     foreach my $pr (@{$prs}){
+      use Data::Dumper;
+      print Dumper($pr);
       my $updatedTime = str2time($pr->{'updated_at'});
       if($updatedTime > $runTime){  #PR has been updated since last run
         push(@queue, {
           "title" => $pr->{'title'},
           "url" => $pr->{'url'},
-          "branch" => $pr->{'head'}->{'ref'}
+          "branch" => $pr->{'head'}->{'ref'},
+          "number" => $pr->{'number'}
         });
       }
     }
@@ -47,8 +49,7 @@ sub __config{
 sub __setConfig{
   my($self, $file) = @_;
   my $jsonConfig = read_file($file);
-  my $json = JSON->new();
-  $self->{'__config'} = $json->decode($jsonConfig);
+  $self->{'__config'} = decode_json($jsonConfig);
 }
 
 sub __lastRun{
@@ -86,10 +87,25 @@ sub __processQueueItem{
   my $dir = File::Temp->newdir(UNLINK => 0, CLEANUP => 0, DIR => $self->__config()->{'buildDir'});
   print "Using directory: " . $dir->dirname . "\n";
   chdir($dir->dirname);
-  $self->__runCommand("git clone " . $self->__cloneUrl());
-  chdir($self->__config()->{'repoName'});
-  $self->__runCommand("git checkout " . $item->{'branch'});
-  $self->__runCommand($self->__config()->{'buildCommand'});
+  my $result = 1; #fail by default
+  $result = system("git clone " . $self->__cloneUrl());
+  unless($result){
+    chdir($self->__config()->{'repoName'});
+    $result = system("git checkout " . $item->{'branch'});
+    unless($result){
+      $result = system($self->__config()->{'buildCommand'});
+    }
+  }
+  $self->__setPrStatus($item, !!$result);
+}
+
+sub __setPrStatus{
+  my($self, $item, $result) = @_;
+  my $content = {
+    "body" => $result ? ":construction_worker: Build passed" : ":construction:  Build failed"
+  };
+  my $mech = $self->__mech();
+  $mech->post($self->__prCommentUrl($item), {}, Content => encode_json($content));
 }
 
 sub __cloneUrl{
@@ -102,13 +118,10 @@ sub __prUrl{
   "https://api.github.com/repos/" . $config->{'ownerName'} . "/" . $config->{'repoName'} . "/pulls?state=open&sort=created&direction=asc";
 }
 
-sub __runCommand{
-  if(open(CLONE, pop . "|")){
-    while(<CLONE>){
-      print $_;
-    }
-    close(CLONE);
-  }
+sub __prCommentUrl{
+  my($self, $item) = @_;
+  my $config = $self->__config();
+  "https://api.github.com/repos/" . $config->{'ownerName'} . "/" . $config->{'repoName'} . "/issues/" . $item->{'number'} . "/comments";
 }
 
 return 1;
